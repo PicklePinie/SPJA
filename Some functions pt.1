@@ -1,0 +1,48 @@
+
+def my_avg(*num):
+    result = 0
+    count = 0
+    for i in num:
+        result = result + i
+        count = count + 1
+    return result/count
+
+print(my_avg(150,200,250))
+
+def divide(num,lst):
+    vydelene = list(map(lambda x: x/num, lst))
+    return vydelene
+
+print(divide(2,[1,2,4,5,666]))
+
+def my_map( fce, lst):
+    [fce for x in lst]
+
+def print_all():
+    file = open("calls.txt")
+    for line in file:
+        print(line)
+    file.close()
+
+
+def do_stuff_with_number(n):
+    print(n)
+
+
+the_list = (1, 2, 3, 4, 5)
+
+for i in range(8):
+    try:
+        do_stuff_with_number(the_list[i])
+    except IndexError:  # Raised when accessing a non-existing index of a list
+        do_stuff_with_number(0)
+
+
+def this_fails():
+    x = 1/0
+
+try:
+    this_fails()
+except ZeroDivisionError as err:
+    print('WTF: ', err)
+
