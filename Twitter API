@@ -1,0 +1,265 @@
+//this code does not work how it should, but it does something. And if it is somehow working, im not touching it.
+
+import json
+import os
+import re
+from resizeimage import resizeimage
+import mechanicalsoup
+from datetime import datetime
+from PIL import Image
+from io import BytesIO
+from urllib.parse import urlencode
+
+import requests
+
+def create_client():
+    consumer = oauth.Consumer(key=CONSUMER_KEY, secret=CONSUMER_SECRET)
+    access_token = oauth.Token(key=ACCESS_KEY, secret=ACCESS_SECRET)
+    client = oauth.Client(consumer, access_token)
+
+    return client
+
+
+# Twitter API documentation: https://developer.twitter.com/en/docs.html
+API_URL = 'https://api.twitter.com/1.1/'
+CLIENT = create_client()
+
+
+def send_tweet(status):
+    """
+    1 point.
+    Send a tweet with the given `status`.
+    Return the response from client.request call.
+
+    Use the provided `CLIENT` variable. Don't forget to urlencode the
+    URL parameters.
+
+    Example:
+        res = send_tweet('Hello!')
+        assert int(res['status']) == 2OO
+    """
+    '''
+    f = {'status':status}
+    res, data = CLIENT.request("https://api.twitter.com/1.1/statuses/update.json?"+urlencode(f), method="POST")
+    return res
+    '''
+    pass
+
+
+def format_date(origin_date):
+    new_date = origin_date[-4:] + '-' + origin_date[4:7] + '-' + origin_date[8:10]
+    current = datetime.strptime(new_date, "%Y-%b-%d").strftime('%Y-%m-%d')
+    return current
+
+
+def what_guido_says(since, until, keyword):
+    """
+    2 points.
+    Return a list of tweets originating from the Twitter account 'gvanrossum'
+    that were posted between `since` and `until` and contain `keyword`.
+    Each entry in the list should be a tuple (tweet_text, is_retweet).
+    tweet_text should be the text of the tweet
+    is_retweet is a boolean stating whether the tweet is a retweet or not
+
+    Use the provided `CLIENT` variable. Don't forget to urlencode the
+    URL parameters.
+
+    Example:
+        what_guido_says('2018-10-20', '2018-10-25', 'Python')
+        # [('blabla', False), ('RT: blablabla', True)]
+
+   """
+    url_parameters = {
+        'screen_name': 'gvanrossum',
+        'hashtags': [keyword],
+    }
+    request_url = API_URL + 'statuses/user_timeline.json?' + urlencode(url_parameters)
+    res, data = CLIENT.request(request_url, method='GET')
+    json_tweets = json.loads(data.decode())
+    tupl = []
+    for tweet in json_tweets:
+        current = format_date(tweet['created_at'])
+        text = tweet['text']
+        retweeted = tweet['retweeted']
+        if (since < current < until):
+            tupl.append((text, retweeted))
+
+    return tupl
+
+    # print(current)
+    # print(since)
+
+
+'''
+    for tweet in json_tweets:
+        # Sat Oct 20 21:36:17 +0000 2018
+        current = format_date(['created_at'])
+        print(current)
+        if (since < current < until):
+            tupl += tweet['text']
+            tupl += tweet['retweeted']
+    print(tupl)
+    # print(new_since)
+'''
+
+''' print('for tweet in json_tweets: ')
+        print('tweet: ')
+        print(tweet)
+        print('\n\n')
+        print('screen_name:')
+       # print(tweet['screen_name'])
+        print('text:')
+        print(tweet['text'])
+        print('retweeted:')
+        print(tweet['retweeted'])
+        print('created_at:')
+        print(tweet['created_at'])
+      #  for key in tweet:
+      #      print(' tweet[key]: ' + key)
+      #      print(tweet[key])
+        print('\n')
+        #print('tweet: ')
+        #print(tweet)
+        print('konec tweetu--------------------------------------------------------------\n')
+   # print(json_tweets['text'])
+
+
+what_guido_says('2018-10-20', '2018-10-25', 'Python')
+
+
+'''
+
+
+def scrape_images(url):
+    """
+    3 points.
+    Download the web page from the given `url` and find all images on the page.
+    Then download each image and write it to the filesystem under its filename.
+
+    Regex cheatsheet: https://medium.com/factory-mind/regex-tutorial-a-simple-cheatsheet-by-examples-649dc1c3f285
+
+    Example:
+        Web page asd.cz: <html>....<img src="images/ahoj.jpg" />...</html>
+
+        scrape_images('http://asd.cz')
+        # creates file 'ahoj.jpg' with the image content ('images/' is ignored)
+
+    Hint:
+        Either download the web page and parse the images using regular expressions,
+        or use the MechanicalSoup (https://mechanicalsoup.readthedocs.io/en/stable/tutorial.html)
+        library to extract images from the page.
+    """
+    # r = requests.get(url)
+    # print(url)
+    # <img([\w\W]+?)/>
+    # p = re.compile('<img([\w\W]+?)/>')
+    # p = re.compile('<img .+?>')
+    # matches = re.search('<img.+?>', r.text)
+    # matches = re.findall('<img.*src=("[^"]+").*>', r.text)
+    # for match in matches:
+    #    print(match)
+    # print(matches)
+    # print(r.text)
+
+    browser = mechanicalsoup.StatefulBrowser()
+    browser.open(url)
+    matches = browser.get_current_page().find_all('img')
+    for match in matches:
+        img_url = url + match['src']
+        image = browser.open(img_url).content
+        image_name = img_url.split('/')[-1]
+
+        with open(image_name, 'wb') as f:
+            f.write(image)
+
+
+'''
+def create_collage(width, height, list_of_images):
+
+    browser = mechanicalsoup.StatefulBrowser()
+    Picturewidth = width // 5
+    Pictureheight = height // 2
+    size = Picturewidth, Pictureheight
+    new_im = Image.new('RGB', (450, 300))
+    for p in list_of_images:
+        image = browser.open(p).content
+    for col in range(0, width):
+        for row in range(0, height):
+            #image = Image.eval(p, lambda x: x + (col + row) / 30)
+            image.eval(p, lambda x: x + (col + row) / 30)
+            new_im.paste(p, (col, row))
+            new_im.save("Collage" + ".jpg")
+'''
+
+
+def load_and_collage(width, height, list_of_images):
+    #browser = mechanicalsoup.StatefulBrowser()
+    cols = 5
+    rows = 2
+    thumbnail_width = width // cols
+    thumbnail_height = height // rows
+    size = (thumbnail_width, thumbnail_height)
+    new_im = Image.new('RGB', (width, height))
+    ims = []
+    for p in list_of_images:
+        gimme200plz = requests.get(p)
+        #im = Image.frombytes("RGB", size, gimme200plz)
+        im = Image.open(BytesIO(gimme200plz.content))
+        im = im.resize(size)
+        ims.append(im)
+    i = 0
+    x = 0
+    y = 0
+    #print(type(ims[0]))
+    #print(type(ims))
+    for col in range(cols):
+        for row in range(rows):
+            #print(i, x, y)
+            new_im.paste(ims[i], (x, y))
+            i += 1
+            y += thumbnail_height
+        x += thumbnail_width
+        y = 0
+
+    new_im.save("CollagetestforDusan.jpg")
+
+
+def bonus_catzz():
+    """
+    1 point (bonus).
+    Download the latest 10 tweets from the Twitter account CatMemes.
+    Download all images contained in those tweets and combine them into
+    one large image containing the latest cat memes. Write the collage image
+    to the filesystem.
+
+    Hint: use the pillow library to merge images together
+    """
+    # https://api.twitter.com/1.1/statuses/user_timeline.json
+    # GET https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=twitterapi&count=2
+    how_much_images = 10
+
+    url_parameters = {
+        'screen_name': 'CatMemes',
+        'count': how_much_images + 5  # nepodarilo se mi osetrit jestli tam obrazek je nebo ne
+    }
+    request_url = API_URL + 'statuses/user_timeline.json?' + urlencode(url_parameters)
+    res, data = CLIENT.request(request_url, method='GET')
+    json_tweets = json.loads(data.decode())
+    #i = 0
+    #browser = mechanicalsoup.StatefulBrowser()
+    img_position = set()
+    for tweet in json_tweets:
+        ext_ent = tweet['extended_entities']
+        media = ext_ent.get('media', [])
+        if len(media) > 0 and len(img_position) < how_much_images:
+            img_position.add(media[0]['media_url'])
+
+    #print('\n')
+    # print(media)
+    #print(img_position)
+    #print(len(img_position))
+    load_and_collage(2000, 1000, img_position)
+
+
+
+bonus_catzz()
